@@ -41,8 +41,8 @@ USER_AGENTS = [
 
 def get_html_page():
 
-    yesterday = datetime.date.today() - datetime.timedelta(days=2)
-    today = datetime.date.today() - datetime.timedelta(days=1)
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    today = datetime.date.today()
 
     headers = {"User-Agent": random.choice(USER_AGENTS)}
     dxyurl = 'https://3g.dxy.cn/newh5/view/pneumonia'

@@ -7,7 +7,7 @@ import re
 
 today = datetime.date.today()
 yesterday=today-datetime.timedelta(days=1)
-raw_data=pd.read_csv('../rawdata_2020_2_15.csv')
+raw_data=pd.read_csv('../rawdata_2020_2_16.csv')
 raw_data['updateTime'] = pd.to_datetime(raw_data['updateTime'])
 raw_data=raw_data[(raw_data['updateTime']<datetime.date.today())]
 

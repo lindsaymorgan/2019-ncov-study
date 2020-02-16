@@ -21,7 +21,7 @@ plt.xlabel('日期')
 # plt.ylabel('newlyconfirmcount-average-distance/km')
 # plt.xlabel('date')
 plt.xticks(rotation=45)
-plt.savefig(f'/mnt/data/Lindsay/2019-ncov/program/everyday-run/result/newlyconfirmcount-average-distance-{today}.jpg', bbox_inches='tight')
+plt.savefig(f'./result/newlyconfirmcount-average-distance-{today}.jpg', bbox_inches='tight')
 plt.show()
 
 # result1=dict()

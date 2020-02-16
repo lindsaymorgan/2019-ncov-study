@@ -65,6 +65,8 @@ plt.close()
 #left fig
 result=result[:10]
 city_name = list(result['city'])
+with open(f'./result/text-{today}.txt', 'a+') as f:
+    print('slope_top10',', '.join(list(result["city"])[:10]), file=f)
 city_name.reverse()
 data = list(result['k'])
 data.reverse()

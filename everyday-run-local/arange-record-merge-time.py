@@ -4,20 +4,23 @@ import numpy as np
 from xpinyin import Pinyin
 from geopy import distance
 import datetime
+import pypinyin
 
-p = Pinyin()
-
-
+def pinyin(word):
+    s = ''
+    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
+        s += ''.join(i)
+    return s
 
 # geo=pd.read_csv('./support-data/china_coordinates.csv')
 
 today = datetime.date.today()-datetime.timedelta(days=1)
-record=pd.read_csv(f'city-day-summary-{today}.csv')
+record=pd.read_csv(f'./agged-record-data/city-day-summary-{today}.csv')
 record1=pd.pivot_table(record, values='city_confirmedCount', index='cityName',
                     columns='updateTime')
-record1['cityName-ch']=record1.index
+record1['cityName']=record1.index
 
-record1['cityName'] = record1.apply(lambda row: p.get_pinyin(f"{row['cityName-ch']}", "").capitalize(), axis = 1)
+record1['cityName-en'] = record1.apply(lambda row: pinyin(f'{row["cityName"]}').capitalize(), axis = 1)
 
 for i in [('Wuhan',30.52,114.31),('Xiaogan',31.92,113.91),('Huanggang',30.44,114.87),('Suizhou',31.7178576081886,113.379358364292),('Jingzhou',30.332590522986,112.241865807191)]:
     geo_dict = dict()
@@ -46,4 +49,8 @@ for i in [('Wuhan',30.52,114.31),('Xiaogan',31.92,113.91),('Huanggang',30.44,114
             dist.append(np.nan)
 
     record1[f'distance-{i[0]}']=dist
-record1.to_csv(f'city-pivot-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+
+record1=pd.merge(record1,record.loc[:,['cityName','provinceName']],how='left',on = 'cityName')
+record1.drop_duplicates(keep = 'first', inplace = True)
+
+record1.to_csv(f'./agged-record-data/city-pivot-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')

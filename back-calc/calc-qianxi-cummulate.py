@@ -7,15 +7,23 @@ import collections
 import math
 from itertools import compress
 import statsmodels.api as sm
+import datetime
+
 date='2020/2/18'
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False
-qianxi=pd.read_csv('baiduqianxi_hubei_level_20200122.csv')
+
+qianxi=pd.read_csv('migration_data_hubei_22_23.csv')
 raw_data=pd.read_csv('add-province-pivot-day-summary-2020-02-18.csv')
 place=pd.read_csv('china_coordinates.csv')
 
+# base=datetime.datetime.strptime(date,'%y/%m/%d')
+today=datetime.date.today()-datetime.timedelta(days=1)
+# qianxi['move_out']=qianxi[[f'{i}_out' for i in  [base - datetime.timedelta(days=x) for x in range((today-base).days)]]]
+qianxi['move_out']=[(a+b)/2 for a,b in zip(qianxi['20200122_out'],qianxi['20200123_out'])]
+
+
 data=raw_data[[f'{date}','provinceName']]
-# data.drop(['currentConfirmedCount'],inplace=True)
 data=pd.merge(data,place,on='provinceName',how='left')
 data['geo_distance']=0
 data=pd.merge(data,qianxi.loc[:,['move_out','provinceName']],on='provinceName',how='left')
@@ -25,33 +33,13 @@ data1=data[(data['provinceName']!='香港') & (data['provinceName']!='澳门') &
 # | (data['provinceName']=='山东')| (data['provinceName']=='北京')| (data['provinceName']=='江苏')| (data['provinceName']=='黑龙江')]
 data1.drop_duplicates(keep='first',inplace=True,subset='provinceName')
 data1.reset_index(inplace=True)
-# data['geo_distance'] = data.apply(lambda row: distance.distance((row[8],row[7]), (30.52,114.31)).kilometers, axis = 1)
 
-# dict_dis=dict()
-#     # [1.875+i*0.25 for i in range(8)]
-# for i in range(len(data1)):
-#     move=int((np.log10(data1['move_out'])[i]+2)/0.5)
-#     dict_dis.setdefault(-2+move*0.5, []).append(np.log10(data1['province_confirmedCount'])[i])
-# dict_dis1=dict.fromkeys([-2+i*0.5 for i in range(8)],)
-# for t in dict_dis.keys():
-#     dict_dis1[t]=np.nanmean(dict_dis[t])
-#
-# dict_dis1 =  {k: dict_dis1[k] for k in dict_dis1 if dict_dis1[k] is not None}
-# dict_dis1 = collections.OrderedDict(sorted(dict_dis1.items()))
-# popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(dict_dis1.keys())[2:], list(dict_dis1.values())[2:])
-# y2 = [popt[0] * i + popt[1] for i in list(dict_dis1.keys())[2:]+[0.8,1]]
-# plt.plot(list(dict_dis1.keys())[2:]+[0.8,1], y2, '--', label=f'{popt[0]:.2f}')
-# plt.plot(list(dict_dis1.keys()), list(dict_dis1.values()), 'o-')
-
-# popt, pcov = curve_fit(lambda t, k, b: k * t + b, np.log10(data1['move_out']), np.log10(data1['province_confirmedCount']))
-# y2 = [popt[0] * i + popt[1] for i in np.log10(data1['move_out'])]
-# plt.plot(np.log10(data1['move_out']), y2, '--')
 X = sm.add_constant(np.log10(data1['move_out']))
 X_1 = sm.add_constant(np.log10(data['move_out']))
 weight_add=2
 lm_s = sm.WLS(np.log10(data1[f'{date}']), X,weights=[a+b for a,b in zip([i*weight_add for i in [1,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,1]]+[0]*(len(data1)-17),[1]*len(data1))]).fit()
-plt.plot(np.log10(data1['move_out']), np.log10(data1[f'{date}']),'o', label=f'各省上报')
-plt.plot(np.log10(data['move_out']), lm_s.predict(X_1), '--', label='拟合推测线')
+plt.plot(np.log10(data1['move_out']), np.log10(data1[f'{date}']),'o')
+plt.plot(np.log10(data['move_out']), lm_s.predict(X_1), '--', label='WLS')
 
 # data['guess_by_wls']=data.apply(lambda row: pow(10,lm_s.params[0]*math.log10(row[10])+lm_s.params[1]), axis = 1)
 data['guess_qianxi']=[pow(10,i) for i in lm_s.predict(X_1)]
@@ -76,10 +64,9 @@ plt.figure(figsize=(8,12))
 plt.title(f'{date}')
 valid = ~(np.isnan( data['guess_qianxi']))
 # plt.text(math.log10(3),-2.3,f'2020-02-18', fontsize=10)
-plt.barh(range(len(data2)-1), list(compress(data2['guess_qianxi'],valid)),color='#ff4c00',label='推测感染人数')
-plt.barh(range(len(data2)-1),list(compress(data2[f'{date}'],valid)),label='上报确诊人数')
+plt.barh(range(len(data2)-1), list(compress(data2['guess_qianxi'],valid)),color='#ff4c00')
+plt.barh(range(len(data2)-1),list(compress(data2[f'{date}'],valid)))
 plt.yticks(range(len(data2)-1),list(compress(data2['provinceName'],valid)),fontsize='13')
-plt.legend()
 # plt.barh(range(len(data)-4), list(compress(data['guess_qianxi'],valid)),color='#ff4c00')
 # plt.barh(range(len(data)-4),list(compress(data['province_confirmedCount'],valid)))
 # plt.yticks(range(len(data)-4),list(compress(data['provinceName'],valid)),fontsize='13')

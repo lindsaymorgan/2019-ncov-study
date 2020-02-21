@@ -33,15 +33,16 @@ color=['r','y','g','b','m','c','lawngreen','sandybrown','darkviolet','hotpink']
 #right fig
 for x in range(10):
     i=result['city'][x]
-    k=result['k'][x]
-    b=result['b'][x]
+    if i not in ['黔南','通辽']:
+        k=result['k'][x]
+        b=result['b'][x]
 
-    value = np.log10(data[data['cityName'] == i]['city_confirmedCount'])
-    value=value.rolling(3).mean()
+        value = np.log10(data[data['cityName'] == i]['city_confirmedCount'])
+        value=value.rolling(3).mean()
 
-    y2 = [k* i+b for i in list(range(len(value)+2))[-6:]]
-    plt.plot(range(len(value)), value, marker='o', label=f'{i}',color=color[x])
-    plt.plot(list(range(len(value)+2))[-6:], y2, '--',color=color[x])
+        y2 = [k* i+b for i in list(range(len(value)+2))[-6:]]
+        plt.plot(range(len(value)), value, marker='o', label=f'{i}',color=color[x])
+        plt.plot(list(range(len(value)+2))[-6:], y2, '--',color=color[x])
 
 
 # formatter = FuncFormatter(formatnum)
@@ -64,11 +65,11 @@ plt.close()
 
 #left fig
 result=result[:10]
-city_name = list(result['city'])
+city_name = list(result['city'])[1:4]+list(result['city'])[5:]
 with open(f'./result/text-{today}.txt', 'a+') as f:
     print('slope_top10',', '.join(list(result["city"])[:10]), file=f)
 city_name.reverse()
-data = list(result['k'])
+data = list(result['k'])[1:4]+list(result['k'])[5:]
 data.reverse()
 
 plt.barh(range(len(data)), data,color='#ff4c00')
@@ -76,7 +77,7 @@ plt.yticks(range(len(city_name)),city_name,fontsize='13')
 plt.xticks()
 
 
-plt.title('城市确诊人数指数增长率前十名', loc='center', fontsize='20',
+plt.title('城市确诊人数指数增长率前八名', loc='center', fontsize='20',
           fontweight='bold')
 plt.savefig(f'./result/log-mean-slope-top10-cityplot-{today}.jpg', bbox_inches='tight')
 

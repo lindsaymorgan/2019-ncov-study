@@ -7,18 +7,18 @@ import re
 
 today = datetime.date.today()
 yesterday=today-datetime.timedelta(days=1)
-raw_data=pd.read_csv('../rawdata_2020_2_16.csv')
+raw_data=pd.read_csv('../rawdata_2020_2_21.csv')
 raw_data['updateTime'] = pd.to_datetime(raw_data['updateTime'])
 raw_data=raw_data[(raw_data['updateTime']<datetime.date.today())]
 
-raw_data1 = pd.pivot_table(raw_data, index=[raw_data['updateTime'].dt.date, 'provinceName'], values=['province_confirmedCount', 'province_suspectedCount', 'province_curedCount'], aggfunc=np.max)
+raw_data1 = pd.pivot_table(raw_data, index=[raw_data['updateTime'].dt.date-datetime.timedelta(days=1), 'provinceName'], values=['province_confirmedCount', 'province_suspectedCount', 'province_curedCount'], aggfunc=np.max)
 raw_data1=pd.DataFrame(raw_data1.to_records())
-raw_data3= pd.pivot_table(raw_data1, index=raw_data1['updateTime'], values=['province_confirmedCount', 'province_suspectedCount', 'province_curedCount'], aggfunc=np.sum)
+raw_data3= pd.pivot_table(raw_data1, index=raw_data1['updateTime']-datetime.timedelta(days=1), values=['province_confirmedCount', 'province_suspectedCount', 'province_curedCount'], aggfunc=np.sum)
 raw_data3=raw_data3.rename(columns={'province_confirmedCount':'country_confirmedCount','province_curedCount':'country_curedCount','province_suspectedCount':'country_suspectedCount'})
 raw_data3=pd.DataFrame(raw_data3.to_records())
 
-raw_data1.to_csv(f'province-day-summary-{yesterday}.csv',index=0)
-raw_data3.to_csv(f'country-day-summary-{yesterday}.csv',index=0)
+raw_data1.to_csv(f'./agged-record-data/province-day-summary-{yesterday}.csv',index=0,encoding='utf-8-sig',sep=',')
+raw_data3.to_csv(f'./agged-record-data/country-day-summary-{yesterday}.csv',index=0,encoding='utf-8-sig',sep=',')
 
 raw_data2=raw_data1[(raw_data1['provinceName']=='北京市') | (raw_data1['provinceName']=='上海市') | (raw_data1['provinceName']=='重庆市') | (raw_data1['provinceName']=='天津市')]
 city=raw_data2.rename(columns={'province_confirmedCount':'city_confirmedCount','province_curedCount':'city_curedCount','province_suspectedCount':'city_suspectedCount'})
@@ -52,4 +52,4 @@ for index, row in raw_data2.iterrows():
 raw_data2 = raw_data2.dropna(how='any')
 raw_data2 = raw_data2.sort_values(by=['provinceName', 'cityName','updateTime','city_confirmedCount'])
 raw_data2.drop_duplicates(keep = 'last', inplace = True)
-raw_data2.to_csv(f'city-day-summary-{yesterday}.csv',index=0)
+raw_data2.to_csv(f'./agged-record-data/city-day-summary-{yesterday}.csv',index=0,encoding='utf-8-sig',sep=',')

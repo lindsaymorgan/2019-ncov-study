@@ -5,6 +5,13 @@ import numpy as np
 from xpinyin import Pinyin
 import collections
 import datetime
+import pypinyin
+
+def pinyin(word):
+    s = ''
+    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
+        s += ''.join(i)
+    return s
 
 p = Pinyin()
 today=datetime.date.today()-datetime.timedelta(days=1)

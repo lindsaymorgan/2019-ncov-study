@@ -24,7 +24,7 @@ raw_data2=raw_data1[(raw_data1['provinceName']=='北京市') | (raw_data1['provi
 city=raw_data2.rename(columns={'province_confirmedCount':'city_confirmedCount','province_curedCount':'city_curedCount','province_suspectedCount':'city_suspectedCount'})
 city['cityName']=city['provinceName']
 raw_data=raw_data[(raw_data['provinceName']!='北京市') & (raw_data['provinceName']!='上海市') & (raw_data['provinceName']!='重庆市') & (raw_data['provinceName']!='天津市')]
-raw_data2 = pd.pivot_table(raw_data, index=[raw_data['updateTime'].dt.date, 'cityName'], values=['provinceName','city_confirmedCount', 'city_suspectedCount', 'city_curedCount'], aggfunc=np.max)
+raw_data2 = pd.pivot_table(raw_data, index=[raw_data['updateTime'].dt.date-datetime.timedelta(days=1), 'cityName'], values=['provinceName','city_confirmedCount', 'city_suspectedCount', 'city_curedCount'], aggfunc=np.max)
 raw_data2=pd.DataFrame(raw_data2.to_records())
 raw_data2 = pd.concat([raw_data2,city]).reset_index(drop=True)
 

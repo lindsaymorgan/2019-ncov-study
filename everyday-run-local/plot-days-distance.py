@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 today=datetime.date.today()-datetime.timedelta(days=1)
-raw_data=pd.read_csv(f'city-pivot-day-summary-{today}.csv')
+raw_data=pd.read_csv(f'./agged-record-data/city-pivot-day-summary-{today}.csv')
 
-raw_data=raw_data.sort_values(by=f'{today}',ascending=False)[:10]
+raw_data=raw_data.sort_values(by=f'{today-datetime.timedelta(days=1)}',ascending=False)[:10]
 
-base=datetime.datetime(2020,1,24).date()
-length=(datetime.datetime.today()-datetime.datetime(2020,1,24)).days
+base=datetime.datetime(2020,1,23).date()
+length=(today-datetime.datetime(2020,1,23).date()).days
 result=dict()
 
 for date in [base + datetime.timedelta(days=x) for x in range(1,length)]:

@@ -21,10 +21,13 @@ def telegram_bot_sendtext(bot_message):
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 
 today = datetime.date.today()-datetime.timedelta(days=1)
-country_data=pd.read_csv(f'country-day-summary-{today}.csv')
-data=pd.read_csv(f'city-day-summary-{today}.csv')
+country_data=pd.read_csv(f'./agged-record-data/country-day-summary-{today}.csv')
+data=pd.read_csv(f'./agged-record-data/city-day-summary-{today}.csv')
+# data=pd.read_csv(f'./agged-record-data/city-pivot-day-summary-{today}.csv')
 
 data=data.sort_values(by=['provinceName', 'cityName','updateTime'])
+data['updateTime']=pd.to_datetime(data['updateTime'])
+
 result=pd.read_csv(f'./result/slope-log-mean-{today}.csv')
 result=result.sort_values(by=['k'], ascending=False).reset_index(drop=True)
 #, label=f'fit-{name}-{round(popt[0],2)}'
@@ -33,43 +36,52 @@ color=['r','y','g','b','m','c','lawngreen','sandybrown','darkviolet','hotpink']
 #right fig
 for x in range(10):
     i=result['city'][x]
-    if i not in ['黔南','通辽']:
-        k=result['k'][x]
-        b=result['b'][x]
+    # if i not in ['黔南','通辽']:
+    k=result['k'][x]
+    b=result['b'][x]
 
-        value = np.log10(data[data['cityName'] == i]['city_confirmedCount'])
-        value=value.rolling(3).mean()
+    value = np.log10(data[data['cityName'] == i]['city_confirmedCount'])
+    value.index=[(k-datetime.datetime(2020,1,23)).days for k in data[data['cityName'] == i]['updateTime']]
+    value=value.rolling(3).mean()
 
-        y2 = [k* i+b for i in list(range(len(value)+2))[-6:]]
-        plt.plot(range(len(value)), value, marker='o', label=f'{i}',color=color[x])
-        plt.plot(list(range(len(value)+2))[-6:], y2, '--',color=color[x])
+    # value =np.log10(data[data['cityName']==i].values.tolist()[0][:-8])
+    # value = value.tolist().rolling(3).mean()
+
+    # y2 = [k* i+b for i in list(range(len(value)+2))[-4:]]
+    y2 = [k * i + b for i in value.index[-4:]]
+    # plt.plot(range(len(value)), value, marker='o', label=f'{i}',color=color[x])
+    # plt.plot(list(range(len(value)+2))[-4:], y2, '--',color=color[x])
+    plt.plot(value.index, value, marker='o', label=f'{i}', color=color[x])
+    plt.plot(value.index[-4:], y2, '--', color=color[x])
+    # plt.show()
 
 
 # formatter = FuncFormatter(formatnum)
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 plt.xlabel('日期')
 date=list()
-m=datetime.datetime(2020,1,24)
+m=datetime.datetime(2020,1,23)
 while m.date()-datetime.timedelta(days=1)<=today:
     m=m+datetime.timedelta(days = 2)
     date.append( m.strftime("%m-%d"))
 plt.xticks( [i*2 for i in range(1,len(date))], date ,rotation=45)
 
-ytick=[1,3,6,10,30,60,100,300,600,1000,3000,6000,10000,30000]
+ytick=[1,3,6,10,30,60,100,300]
 plt.yticks( np.log10(ytick),ytick)
 plt.ylabel('确诊人数规模-对数坐标')
 
 plt.savefig(f'./result/city-log-mean-slope-top10-{today}.jpg',bbox_inches='tight')
+plt.show()
 plt.close()
 
 
 #left fig
 result=result[:10]
-city_name = list(result['city'])[1:4]+list(result['city'])[5:]
+city_name = list(result['city'])
 with open(f'./result/text-{today}.txt', 'a+') as f:
     print('slope_top10',', '.join(list(result["city"])[:10]), file=f)
 city_name.reverse()
-data = list(result['k'])[1:4]+list(result['k'])[5:]
+data = list(result['k'])
 data.reverse()
 
 plt.barh(range(len(data)), data,color='#ff4c00')
@@ -77,9 +89,10 @@ plt.yticks(range(len(city_name)),city_name,fontsize='13')
 plt.xticks()
 
 
-plt.title('城市确诊人数指数增长率前八名', loc='center', fontsize='20',
+plt.title('城市确诊人数指数增长率前十名', loc='center', fontsize='20',
           fontweight='bold')
 plt.savefig(f'./result/log-mean-slope-top10-cityplot-{today}.jpg', bbox_inches='tight')
+plt.show()
 
 test = telegram_bot_sendtext(f'{list(result["city"])[:10]}')
 

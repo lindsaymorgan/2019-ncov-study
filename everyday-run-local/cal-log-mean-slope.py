@@ -19,10 +19,11 @@ def telegram_bot_sendtext(bot_message):
 
 
 today = datetime.date.today()-datetime.timedelta(days=1)
-country_data=pd.read_csv(f'country-day-summary-{today}.csv')
-data=pd.read_csv(f'city-day-summary-{today}.csv')
+country_data=pd.read_csv(f'./agged-record-data/country-day-summary-{today}.csv')
+data=pd.read_csv(f'./agged-record-data/city-day-summary-{today}.csv')
 
 data=data.sort_values(by=['provinceName', 'cityName','updateTime'])
+data['updateTime']=pd.to_datetime(data['updateTime'])
 
 city_list=list(Counter(data['cityName']))
 city=list()
@@ -36,12 +37,14 @@ def rmse(y_test, y):
 for x in city_list:
     # i=result['city'][x]
     value = np.log10(data[data['cityName'] == x]['city_confirmedCount'])
+    value.index = [(k - datetime.datetime(2020, 1, 23)).days for k in data[data['cityName'] == x]['updateTime']]
     value=value.rolling(3).mean()
-    if len(value[12:])<6:
+    if len(value[15:])<6:
         continue
     # name = p.get_pinyin(f"{i}", "").capitalize()
     try:
-        popt, pcov = curve_fit(lambda t,k, b: k * t+b, list(range(len(value)))[-6:],value[-6:])
+        # popt, pcov = curve_fit(lambda t,k, b: k * t+b, list(range(len(value)))[-4:],value[-4:])
+        popt, pcov = curve_fit(lambda t, k, b: k * t + b, value.index[-4:], value[-4:])
         city.append(x)
         k_list.append(popt[0])
         b_list.append(popt[1])

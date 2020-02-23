@@ -16,7 +16,7 @@ def pinyin(word):
 p = Pinyin()
 today=datetime.date.today()-datetime.timedelta(days=1)
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
-data=pd.read_csv(f'city-pivot-day-summary-{today}.csv')
+data=pd.read_csv(f'./agged-record-data/city-pivot-day-summary-{today}.csv')
 color=['r','y','g','b','m','c','lawngreen','sandybrown','darkviolet','hotpink']
 # plt.scatter(np.log10(data['distance']),np.log10(data['2020-02-11']))
 cut=7
@@ -27,7 +27,7 @@ for x, c_name in enumerate (['武汉','孝感','黄冈','随州','荆州']):
     for i in range(len(data)):
         if data[f'distance-{name}'][i]!=0:
             t=int((np.log10(data[f'distance-{name}'])[i]-1.875)/0.25)
-            dict_dis.setdefault(1.875+t*0.25, []).append(np.log10(data[f'{today}'])[i])
+            dict_dis.setdefault(1.875+t*0.25, []).append(np.log10(data[f'{today-datetime.timedelta(days=1)}'])[i])
     dict_dis1=dict.fromkeys([1.875+i*0.25 for i in range(8)],)
     for t in dict_dis.keys():
         dict_dis1[t]=np.nanmean(dict_dis[t])
@@ -42,7 +42,7 @@ for x, c_name in enumerate (['武汉','孝感','黄冈','随州','荆州']):
     # plt.loglog(np.power(10,list(dict_dis1.keys())),np.power(10,list(dict_dis1.values())),'o-',label=c_name)
 
 # plt.title('武汉',fontsize=15)
-plt.text(1,0.5,f'确诊人数截至{today}', fontsize=10)
+plt.text(1,0.5,f'确诊人数截至{today-datetime.timedelta(days=1)}', fontsize=10)
 plt.xlabel('与该城市的距离-对数坐标',fontsize=15)
 plt.ylabel('确诊人数-对数坐标',fontsize=15)
 ytick=[1,3,6,10,30,60,100,300,600,1000,3000,6000,10000]

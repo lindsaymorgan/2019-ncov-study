@@ -46,4 +46,7 @@ for i in [('Wuhan',30.52,114.31),('Xiaogan',31.92,113.91),('Huanggang',30.44,114
             dist.append(np.nan)
 
     record1[f'distance-{i[0]}']=dist
+record1=pd.merge(record1,record.loc[:,['cityName','provinceName']],how='left',on = 'cityName')
+record1.drop_duplicates(keep = 'first', inplace = True)
+record1=record1.ffill(axis=1)
 record1.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')

@@ -103,9 +103,9 @@ def get_html_page():
     province.drop(['deadCount'], inplace=True, axis=1)
 
 
-    city['updateTime']= today
-    province['updateTime'] = today
-    area['updateTime'] = today
+    city['updateTime']= yesterday
+    province['updateTime'] = yesterday
+    area['updateTime'] = yesterday
 
     for index, row in city.iterrows():
         if len(row['cityName']) > 2 and row['cityName'][-1] in ['县', '市', '盟']:
@@ -136,17 +136,17 @@ def get_html_page():
                  'suspectedCount': 'province_suspectedCount'})
 
 
-    city.to_csv(f'city-day-{today}.csv',index=0)
-    province.to_csv(f'province-day-{today}.csv', index=0)
-    area.to_csv(f'area-day-{today}.csv', index=0)
+    city.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/city-day-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+    province.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/province-day-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+    area.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/area-day-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 
     city_sum=pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/city-day-summary-{yesterday}.csv')
     city_sum=pd.concat([city_sum,city],ignore_index=True)
-    city_sum.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/city-day-summary-{today}.csv', index=0)
+    city_sum.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/city-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 
     province_sum = pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/province-day-summary-{yesterday}.csv')
     province_sum = pd.concat([province_sum, province], ignore_index=True)
-    province_sum.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/province-day-summary-{today}.csv', index=0)
+    province_sum.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/province-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 
     country = province.sum()
     country['updateTime']=time.strftime("%Y-%m-%d")
@@ -156,7 +156,7 @@ def get_html_page():
 
     country_sum = pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/country-day-summary-{yesterday}.csv')
     country_sum = pd.concat([country_sum, country], ignore_index=True)
-    country_sum.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/country-day-summary-{today}.csv', index=0)
+    country_sum.to_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/country-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
     # print(country)
 
     test = telegram_bot_sendtext(f'get dxy data finish {time.strftime("%Y-%m-%d %H:%M:%S")} {city["cityName"]}')

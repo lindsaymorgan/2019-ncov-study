@@ -5,6 +5,7 @@ import numpy as np
 from xpinyin import Pinyin
 import collections
 import datetime
+from itertools import compress
 
 p = Pinyin()
 today=datetime.date.today()-datetime.timedelta(days=1)
@@ -20,7 +21,8 @@ for x, c_name in enumerate (['武汉']):
     for i in range(len(data)):
         if data[f'distance-{name}'][i]!=0:
             t=int((np.log10(data[f'distance-{name}'])[i]-1.875)/0.25)
-            dict_dis.setdefault(1.875+t*0.25, []).append(np.log10(data[f'{today}'])[i])
+            dict_dis.setdefault(1.875 + t * 0.25, []).append(np.log10(data[f'2020-01-24'])[i])
+            # dict_dis.setdefault(1.875+t*0.25, []).append(np.log10(data[f'{today-datetime.timedelta(days=1)}'])[i])
     dict_dis1=dict.fromkeys([1.875+i*0.25 for i in range(8)],)
     for t in dict_dis.keys():
         dict_dis1[t]=np.nanmean(dict_dis[t])
@@ -28,8 +30,11 @@ for x, c_name in enumerate (['武汉']):
     dict_dis1 =  {k: dict_dis1[k] for k in dict_dis1 if dict_dis1[k] is not None}
     dict_dis1 = collections.OrderedDict(sorted(dict_dis1.items()))
 
-    popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(dict_dis1.keys())[-cut:], list(dict_dis1.values())[-cut:])
-    y2 = [popt[0] * i + popt[1] for i in list(dict_dis1.keys())[-cut:]]
+    valid = ~(np.isnan(list(dict_dis1.values())) | np.isinf(list(dict_dis1.values())))
+    popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(list(dict_dis1.keys()), valid)),
+                           list(compress(list(dict_dis1.values()), valid)))
+
+    y2 = [popt[0] * i + popt[1] for i in list(dict_dis1.keys())]
     plt.plot(list(dict_dis1.keys())[-cut:], y2, '--', color=color[x])
     plt.plot(list(dict_dis1.keys()), list(dict_dis1.values()), 'o-', color=color[x], label=f'Wuhan_{popt[0]:.2f}')
     # plt.loglog(np.power(10,list(dict_dis1.keys())),np.power(10,list(dict_dis1.values())),'o-',label=c_name)
@@ -43,5 +48,5 @@ plt.yticks( np.log10(ytick),ytick)
 xtick=[60,100,300,600,1000,3000]
 plt.xticks( np.log10(xtick),xtick)
 plt.legend()
-plt.savefig(f'distance-cases-{today}.jpg', bbox_inches='tight')
+# plt.savefig(f'distance-cases-{today}.jpg', bbox_inches='tight')
 plt.show()

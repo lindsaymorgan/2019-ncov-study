@@ -50,5 +50,5 @@ plt.yticks( np.log10(ytick),ytick)
 xtick=[6,10,30,60,100,300,600,1000,3000]
 plt.xticks( np.log10(xtick),xtick)
 plt.legend()
-plt.savefig(f'./result/distance-cases-{today}.jpg', bbox_inches='tight')
+# plt.savefig(f'./result/distance-cases-{today}.jpg', bbox_inches='tight')
 plt.show()

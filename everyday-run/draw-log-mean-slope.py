@@ -25,6 +25,8 @@ country_data=pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy
 data=pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/city-day-summary-{today}.csv')
 
 data=data.sort_values(by=['provinceName', 'cityName','updateTime'])
+data['updateTime']=pd.to_datetime(data['updateTime'])
+
 result=pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/everyday-run/result/slope-log-mean-{today}.csv')
 result=result.sort_values(by=['k'], ascending=False).reset_index(drop=True)
 #, label=f'fit-{name}-{round(popt[0],2)}'
@@ -37,24 +39,27 @@ for x in range(10):
     b=result['b'][x]
 
     value = np.log10(data[data['cityName'] == i]['city_confirmedCount'])
+    value.index = [(k - datetime.datetime(2020, 1, 23)).days for k in data[data['cityName'] == i]['updateTime']]
     value=value.rolling(3).mean()
 
-    y2 = [k* i+b for i in list(range(len(value)+2))[-6:]]
-    plt.plot(range(len(value)), value, marker='o', label=f'{i}',color=color[x])
-    plt.plot(list(range(len(value)+2))[-6:], y2, '--',color=color[x])
+    y2 = [k * i + b for i in value.index[-4:]]
+    # plt.plot(range(len(value)), value, marker='o', label=f'{i}',color=color[x])
+    # plt.plot(list(range(len(value)+2))[-4:], y2, '--',color=color[x])
+    plt.plot(value.index, value, marker='o', label=f'{i}', color=color[x])
+    plt.plot(value.index[-4:], y2, '--', color=color[x])
 
 
 # formatter = FuncFormatter(formatnum)
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 plt.xlabel('日期')
 date=list()
-m=datetime.datetime(2020,1,24)
+m=datetime.datetime(2020,1,23)
 while m.date()-datetime.timedelta(days=1)<=today:
     m=m+datetime.timedelta(days = 2)
     date.append( m.strftime("%m-%d"))
 plt.xticks( [i*2 for i in range(1,len(date))], date ,rotation=45)
 
-ytick=[1,3,6,10,30,60,100,300,600,1000,3000,6000,10000]
+ytick=[1,3,6,10,30,60,100,300,600,1000]
 plt.yticks( np.log10(ytick),ytick)
 plt.ylabel('确诊人数规模-对数坐标')
 

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from xpinyin import Pinyin
 import collections
+from itertools import compress
 import datetime
 
 p = Pinyin()
@@ -20,7 +21,7 @@ for x, c_name in enumerate (['武汉','孝感','黄冈','随州','荆州']):
     for i in range(len(data)):
         if data[f'distance-{name}'][i]!=0:
             t=int((np.log10(data[f'distance-{name}'])[i]-1.875)/0.25)
-            dict_dis.setdefault(1.875+t*0.25, []).append(np.log10(data[f'{today}'])[i])
+            dict_dis.setdefault(1.875+t*0.25, []).append(np.log10(data[f'{today-datetime.timedelta(days=1)}'])[i])
     dict_dis1=dict.fromkeys([1.875+i*0.25 for i in range(8)],)
     for t in dict_dis.keys():
         dict_dis1[t]=np.nanmean(dict_dis[t])
@@ -28,14 +29,15 @@ for x, c_name in enumerate (['武汉','孝感','黄冈','随州','荆州']):
     dict_dis1 =  {k: dict_dis1[k] for k in dict_dis1 if dict_dis1[k] is not None}
     dict_dis1 = collections.OrderedDict(sorted(dict_dis1.items()))
 
-    popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(dict_dis1.keys())[-cut:], list(dict_dis1.values())[-cut:])
+    valid = ~(np.isnan(list(dict_dis1.keys())[-cut:]) |np.isnan(list(dict_dis1.values())[-cut:]))
+    popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(list(dict_dis1.keys())[-cut:],valid)), list(compress(list(dict_dis1.values())[-cut:],valid)))
     y2 = [popt[0] * i + popt[1] for i in list(dict_dis1.keys())[-cut:]]
     plt.plot(list(dict_dis1.keys())[-cut:], y2, '--', color=color[x])
     plt.plot(list(dict_dis1.keys()), list(dict_dis1.values()), 'o-', color=color[x], label=f'{c_name}_{popt[0]:.2f}')
     # plt.loglog(np.power(10,list(dict_dis1.keys())),np.power(10,list(dict_dis1.values())),'o-',label=c_name)
 
 # plt.title('武汉',fontsize=15)
-plt.text(1,0.5,f'确诊人数截至{today}', fontsize=10)
+plt.text(1,0.5,f'确诊人数截至{today-datetime.timedelta(days=1)}', fontsize=10)
 plt.xlabel('与该城市的距离-对数坐标',fontsize=15)
 plt.ylabel('确诊人数-对数坐标',fontsize=15)
 ytick=[1,3,6,10,30,60,100,300,600,1000,3000,6000,10000]

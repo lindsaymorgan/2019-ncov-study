@@ -52,5 +52,18 @@ for i in [('Wuhan',30.52,114.31),('Xiaogan',31.92,113.91),('Huanggang',30.44,114
 
 record1=pd.merge(record1,record.loc[:,['cityName','provinceName']],how='left',on = 'cityName')
 record1.drop_duplicates(keep = 'first', inplace = True)
-
+# record1=record1.ffill(axis=1)
 record1.to_csv(f'./agged-record-data/city-pivot-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+
+
+record['city_D']=[a+b for a,b in zip(record['city_deadCount'],record['city_curedCount'])]
+record2=pd.pivot_table(record, values='city_D', index='cityName',
+                    columns='updateTime')
+record2['cityName']=record2.index
+
+record2['cityName-en'] = record2.apply(lambda row: pinyin(f'{row["cityName"]}').capitalize(), axis = 1)
+
+record2=pd.merge(record2,record.loc[:,['cityName','provinceName']],how='left',on = 'cityName')
+record2.drop_duplicates(keep = 'first', inplace = True)
+# record1=record1.ffill(axis=1)
+record2.to_csv(f'./agged-record-data/city-D-pivot-day-summary-{today}.csv',index=0,encoding='utf-8-sig',sep=',')

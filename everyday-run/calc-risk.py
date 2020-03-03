@@ -8,7 +8,7 @@ today= datetime.date.today()-datetime.timedelta(days=1)
 qianxi=pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/everyday-run/country-data/baiduqianxi_country_level_20{today.strftime("%y%m%d")}.csv')
 raw_data=pd.read_csv(f'/mnt/data/Lindsay/2019-ncov/program/dxy-data/nice-dxy-data/province-day-summary-{today}.csv')
 
-data=raw_data[raw_data['updateTime']==f'{today}'][['provinceName','province_confirmedCount']]
+data=raw_data[raw_data['updateTime']==f'{today-datetime.timedelta(days=1)}'][['provinceName','province_confirmedCount']]
 data=data.merge(qianxi, on=('provinceName'))
 data['ill_rate']=data['province_confirmedCount']/sum(data['province_confirmedCount'])
 data['move_out_ill_rate']=[a*b for a,b in zip(data['move_out'],data['ill_rate'])]

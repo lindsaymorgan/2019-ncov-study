@@ -10,15 +10,16 @@ from itertools import compress
 
 p = Pinyin()
 color=['r','y','g','b','m','c','lawngreen','sandybrown','darkviolet','hotpink']
-today=datetime.date.today()-datetime.timedelta(days=1)
-
-data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv')
-data.sort_values(by=f'{today-datetime.timedelta(days=1)}',inplace=True)
-day=np.log10(list(range(1,(today-datetime.date(2020,1,23)).days)))
+# today=datetime.date.today()-datetime.timedelta(days=1)
+today=datetime.date(2020,3,1)
+data=pd.read_csv(f'../../new-data-source/agged-record-data/city-confirmed-pivot-day-summary-{today}.csv')
+data_D=pd.read_csv(f'../../new-data-source/agged-record-data/city-D-pivot-day-summary-{today}.csv')
+data.sort_values(by=f'{today}',inplace=True)
+# day=np.log10(list(range(1,(today-datetime.date(2020,1,23)).days)))
 # data=pd.read_csv('province-pivot-day-summary-2020-02-18.csv')
 # data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-2020-02-18.csv')
 # day=np.log10(list(range(1,(datetime.datetime.today().date()-datetime.date(2020,1,24)).days)))
-day=list(range(1,(datetime.datetime.today().date()-datetime.date(2020,1,24)).days))
+day=list(range(0,(today-datetime.date(2020,1,23)).days))
 cut=8
 plt.figure(figsize=(15,8))
 #'北京','上海','广州','深圳'
@@ -35,14 +36,20 @@ def pinyin(word):
 k_list=list()
 b_list=list()
 city_list=list()
+data_D.drop(columns=[f'{datetime.date(2019,12,1)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,1,23)-datetime.datetime(2019,12,1)).days)],inplace=True)
+for r,pl in enumerate(data['cityName']): #data['cityName']
+    city = data[data['cityName'] == pl]
+    record = city.values.tolist()[0][:-7]
 
-for r,pl in enumerate(data['cityName']):
-    city=data[data['cityName']==pl]
-    record=city.values.tolist()[0][:-8]
+    city_D = data_D[data_D['cityName'] == pl]
+    record_D = city_D.values.tolist()[0][:-2]
+
     # final=record[-1]
-    record1=[ a-b for a, b in zip(record[1:],record[:-1])]
+    record1 = [a - b for a, b in zip(record[1:], record[:-1])]
+    record2 = [a - b for a, b in zip(record, record_D)]
+    v = np.log10([np.float64(m) / n for (m, n) in zip(record1, record2)])
+
     try:
-        v = np.log10([m / n for (m, n) in zip(record1, record)])
         valid = ~(np.isnan(v[cut:]) | np.isnan(day[cut:]) | np.isinf(v[cut:]) | np.isinf(day[cut:]))
         popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(day[cut:],valid)), list(compress(v[cut:],valid)))
         k_list.append(popt[0])
@@ -53,11 +60,11 @@ for r,pl in enumerate(data['cityName']):
 
 result=pd.DataFrame()
 result['k']=k_list
-result['tau']=[-1/i for i in k_list]
+# result['tau']=[-1/i for i in k_list]
 result['b']=b_list
 result['cityName']=city_list
-result=pd.merge(result,data[['cityName','provinceName']],on='cityName',how='left')
-result.to_csv(f'p(t)-new-cured-dead-slope-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+# result=pd.merge(result,data[['cityName','provinceName']],on='cityName',how='left')
+result.to_csv(f'p(t)-slope-I-D-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 # print(min(k_list),max(k_list))
 #
 # base=int(np.floor(min(k_list)/0.02))

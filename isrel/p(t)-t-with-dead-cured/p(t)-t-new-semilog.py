@@ -10,15 +10,17 @@ from itertools import compress
 
 p = Pinyin()
 color=['r','y','g','b','m','c','lawngreen','sandybrown','darkviolet','hotpink']
-today=datetime.date.today()-datetime.timedelta(days=1)
-data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv')
-data_D=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-D-pivot-day-summary-{today}.csv')
-# data=pd.read_csv('province-pivot-day-summary-2020-02-18.csv')
-# data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-2020-02-24.csv')
-# data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-2020-02-18.csv')
+# today=datetime.date.today()-datetime.timedelta(days=1)
+today=datetime.date(2020,3,1)
+# data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv')
+# data_D=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-D-pivot-day-summary-{today}.csv')
+data=pd.read_csv(f'../../new-data-source/agged-record-data/city-confirmed-pivot-day-summary-{today}.csv')
+data_D=pd.read_csv(f'../../new-data-source/agged-record-data/city-D-pivot-day-summary-{today}.csv')
 # day=np.log10(list(range(1,(datetime.datetime.today().date()-datetime.date(2020,1,24)).days)))
-day=list(range(0,(today-datetime.date(2020,1,23)).days-1))
+day=list(range(0,(today-datetime.date(2020,1,23)).days))
 cut=8
+# data.drop(columns=[f'{datetime.date(2019,12,1)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,1,23)-datetime.datetime(2019,12,1)).days)],inplace=True)
+data_D.drop(columns=[f'{datetime.date(2019,12,1)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,1,23)-datetime.datetime(2019,12,1)).days)],inplace=True)
 
 #'北京','上海','广州','深圳'
 #'合肥','信阳','蚌埠','南昌','哈尔滨'
@@ -32,18 +34,18 @@ def pinyin(word):
         s += ''.join(i)
     return s
 
-for r,pl in enumerate(['孝感']):
+for r,pl in enumerate(['广州']):
     city=data[data['cityName']==pl]
-    record=city.values.tolist()[0][:-8]
+    record=city.values.tolist()[0][:-7]
 
     city_D = data_D[data_D['cityName'] == pl]
-    record_D = city_D.values.tolist()[0][:-3]
+    record_D = city_D.values.tolist()[0][:-2]
 
     # final=record[-1]
     record1=[ a-b for a, b in zip(record[1:],record[:-1])]
     record2=[ a-b for a, b in zip(record,record_D)]
     v2=np.log10([m/n for (m,n) in zip(record1,record2)])
-    v1 = np.log10([m / n for (m, n) in zip(record1, record)])
+    v1 = np.log10([np.float64(m) / n for (m, n) in zip(record1, record)])
 
     valid = ~(np.isnan(v1[cut:]) | np.isinf(v1[cut:]))
     popt=np.polyfit(list(compress(day[cut:],valid)), list(compress(v1[cut:],valid)),1)
@@ -84,7 +86,7 @@ xtick=[1,2,3,4,5,6,7,8,9,10,13,16,20,23]
 plt.ylabel('P(t)',fontsize=15)
 plt.xlabel('days',fontsize=15)
 plt.legend()
-plt.savefig(f'testD-{pinyin(pl).capitalize()}-semilog-P(t)-days-{today}-with-fit.jpg', bbox_inches='tight')
+# plt.savefig(f'testD-{pinyin(pl).capitalize()}-semilog-P(t)-days-{today}-with-fit.jpg', bbox_inches='tight')
 plt.show()
 
 # for r,pl in enumerate(['孝感','天津']):

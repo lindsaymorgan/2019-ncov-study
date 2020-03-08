@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 
-today=datetime.date.today()-datetime.timedelta(days=1)
-result=pd.read_csv(f'city_infection_2020-02-23.csv')
+# today=datetime.date.today()-datetime.timedelta(days=1)
+today=datetime.date(2020,3,1)
+result=pd.read_csv(f'city_infection_{today}.csv')
 # data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv')
 result=result[(result['infection_rate']<=2) & (result['infection_rate']>=0)]
 # result1=result[result['cityName'].isin(['北京','上海','广州','深圳','成都','杭州','重庆','西安','苏州','天津','南京','长沙','郑州','东莞','青岛','沈阳','宁波','昆明'])]
@@ -21,9 +22,9 @@ for i in infection:
 
 
 plt.bar(range(len(num_dict.keys())),[i for i in num_dict.values()]) #/len(infection)
-plt.xticks(range(len(num_dict.keys())),num_dict.keys())
-# plt.title('Top30 small cities')
+plt.xticks(range(len(num_dict.keys())),num_dict.keys(),fontsize=13)
+plt.yticks(fontsize=13)
 plt.xlabel(r'$P_{0}$',fontsize=15)
 plt.ylabel('citynum',fontsize=15)
-plt.savefig(f'P0-all-cities-2020-02-23.jpg', bbox_inches='tight')
+plt.savefig(f'P0-all-cities-{today}.jpg', bbox_inches='tight')
 plt.show()

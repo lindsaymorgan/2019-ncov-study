@@ -14,13 +14,14 @@ def pinyin(word):
     return s
 
 today = datetime.date.today()
+# today=datetime.date(2020,3,2)
 yesterday=today-datetime.timedelta(days=1)
 former=yesterday-datetime.timedelta(days=1)
 urllib.request.urlretrieve("https://raw.githubusercontent.com/canghailan/Wuhan-2019-nCoV/master/Wuhan-2019-nCoV.csv", f"./agged-record-data/new-rawdata-{today}.csv")
 raw_data=pd.read_csv(f'./agged-record-data/new-rawdata-{today}.csv')
 raw_data['date'] = pd.to_datetime(raw_data['date'])
 raw_data['date'] = raw_data['date'].dt.date
-raw_data=raw_data[(raw_data['date']<datetime.date.today())] # & (raw_data['date']>=yesterday)
+raw_data=raw_data[(raw_data['date']<today)] # & (raw_data['date']>=yesterday)
 
 #国家级数据
 raw_data1=raw_data[raw_data.isnull()['province']]

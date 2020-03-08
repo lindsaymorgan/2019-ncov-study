@@ -7,12 +7,12 @@ import pypinyin
 from itertools import compress
 import matplotlib.pyplot as plt
 
-today=datetime.date(2020,2,23)
+today=datetime.date(2020,3,1)
 # today=datetime.date.today()-datetime.timedelta(days=1)
-data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv')
-data.sort_values(by='2020-02-21',inplace=True,ascending=False)
-# data=pd.read_csv(f'../../city-pivot-day-summary-2020-02-20.csv')
-# data.sort_values(by='2020/2/19',inplace=True,ascending=False)
+# data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv')
+# data.sort_values(by='2020-02-21',inplace=True,ascending=False)
+data=pd.read_csv(f'../../new-data-source/agged-record-data/city-confirmed-pivot-day-summary-{today}.csv')
+data.sort_values(by=f'{today}',inplace=True)
 
 city_list=list()
 infection=list()
@@ -32,15 +32,15 @@ for i,r in data.iterrows():
         #     continue
         city_list.append(data['cityName'][i])
         infection.append(np.mean(v[:5]))
-        P0.append(v[0])
+        # P0.append(v[0])
     except:
         continue
 
 city_infection=pd.DataFrame()
 city_infection['cityName']=city_list
 city_infection['infection_rate']=infection
-city_infection['P0']=P0
-city_infection=pd.merge(city_infection,data[['cityName','provinceName']],on='cityName',how='left')
+# city_infection['P0']=P0
+# city_infection=pd.merge(city_infection,data[['cityName','provinceName']],on='cityName',how='left')
 city_infection.to_csv(f'city_infection_{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 
 # base=int(np.floor(min(infection)/0.2))

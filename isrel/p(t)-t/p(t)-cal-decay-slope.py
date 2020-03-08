@@ -10,9 +10,9 @@ from itertools import compress
 
 p = Pinyin()
 color=['r','y','g','b','m','c','lawngreen','sandybrown','darkviolet','hotpink']
-today=datetime.date.today()-datetime.timedelta(days=1)
-
-data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-{today}.csv')
+# today=datetime.date.today()-datetime.timedelta(days=1)
+today=datetime.date(2020,3,1)
+data=pd.read_csv(f'../../new-data-source/agged-record-data/city-confirmed-pivot-day-summary-{today}.csv')
 data.sort_values(by=f'{today-datetime.timedelta(days=1)}',inplace=True)
 day=np.log10(list(range(1,(today-datetime.date(2020,1,23)).days)))
 # data=pd.read_csv('province-pivot-day-summary-2020-02-18.csv')
@@ -36,9 +36,9 @@ k_list=list()
 b_list=list()
 city_list=list()
 
-for r,pl in enumerate(data['cityName']):
+for r,pl in enumerate(data['cityName']): #data['cityName']
     city=data[data['cityName']==pl]
-    record=city.values.tolist()[0][:-8]
+    record=city.values.tolist()[0][:-7]
     # final=record[-1]
     record1=[ a-b for a, b in zip(record[1:],record[:-1])]
     try:
@@ -56,8 +56,8 @@ result['k']=k_list
 result['tau']=[-1/i for i in k_list]
 result['b']=b_list
 result['cityName']=city_list
-result=pd.merge(result,data[['cityName','provinceName']],on='cityName',how='left')
-result.to_csv(f'p(t)-slope-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+# result=pd.merge(result,data[['cityName','provinceName']],on='cityName',how='left')
+# result.to_csv(f'p(t)-slope-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 # print(min(k_list),max(k_list))
 #
 # base=int(np.floor(min(k_list)/0.02))

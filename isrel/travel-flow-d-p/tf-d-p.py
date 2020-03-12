@@ -41,6 +41,7 @@ valid = ~(np.isnan(x) | np.isinf(x) | np.isnan(y) | np.isinf(y) )
 #计算置信区间
 X = sm.add_constant(list(compress(x, valid)))
 mod = sm.OLS(list(compress(y, valid)), X)
+# print(f'aic={mod.aic}')
 res = mod.fit()
 print ('popu-migration-dist-popu',res.params )
 print (res.conf_int(0.05)[1][1] )

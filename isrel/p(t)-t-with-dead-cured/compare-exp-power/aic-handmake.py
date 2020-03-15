@@ -8,6 +8,7 @@ import math
 import pypinyin
 from itertools import compress
 import statsmodels.api as sm
+from scipy.stats import kstest
 
 p = Pinyin()
 color=['r','y','g','b','m','c','lawngreen','sandybrown','darkviolet','hotpink']
@@ -57,20 +58,35 @@ for r,pl in enumerate(data['cityName']):
         X = sm.add_constant(list(compress(day[cut:], valid)))
         mod = sm.OLS(list(compress(v2[cut:], valid)), X)
         res1 = mod.fit()
+
+        #确定残差是否是正态分布
+        resident= res1.resid
+        # fig = sm.qqplot(resident)
+        # plt.show()
+        print(kstest(resident, 'norm',(0,math.sqrt(np.mean([pow(resident,2)])))))
+
+        #计算AICc
+        AICc=2*2+2*(1/(2*pow(np.std(resident),2))+len(v2[cut:])*np.log(math.sqrt(2*math.pi)*np.std(resident))+np.sum([pow(resident,2)]))
+        print(f'AIC-hand {AICc} {res1.aic}')
         # mod_result1=sm.regression.linear_model.OLSResults(mod,res.params)
 
         # print(f'exp aic={mod_result.aic}')
 
-        valid = ~(np.isnan(v2[cut:]) | np.isnan(np.log10(day[cut:])) | np.isinf(v2[cut:]) | np.isinf(np.log10(day[cut:])))
-        X = sm.add_constant(list(compress(np.log10(day[cut:]), valid)))
-        mod = sm.OLS(list(compress(v2[cut:], valid)), X)
-        res2 = mod.fit()
-        # mod_result2=sm.regression.linear_model.OLSResults(mod,res.params)
+        # valid = ~(np.isnan(v2[cut:]) | np.isnan(np.log10(day[cut:])) | np.isinf(v2[cut:]) | np.isinf(np.log10(day[cut:])))
+        # X = sm.add_constant(list(compress(np.log10(day[cut:]), valid)))
+        # mod = sm.OLS(list(compress(v2[cut:], valid)), X)
+        # res2 = mod.fit()
+        #
+        # # 确定残差是否是正态分布
+        # resident = res2.resid
+        # print(kstest(resident, 'norm', (0, np.std(resident))))
 
-        # if res1.aic!=-np.inf and res2.aic!=-np.inf:
-        cityName_list.append(f'{pinyin(pl).capitalize()}')
-        exp_aic.append(res1.aic+2*2*3/(len(v2)-2-1))
-        pl_aic.append(res2.aic+2*2*3/(len(v2)-2-1))
+        # # mod_result2=sm.regression.linear_model.OLSResults(mod,res.params)
+        #
+        # # if res1.aic!=-np.inf and res2.aic!=-np.inf:
+        # cityName_list.append(f'{pinyin(pl).capitalize()}')
+        # exp_aic.append(res1.aic+2*2*3/(len(v2)-2-1))
+        # pl_aic.append(res2.aic+2*2*3/(len(v2)-2-1))
     except:
         continue
     # print(f'exp aic={mod_result.aic}')
@@ -87,14 +103,14 @@ for r,pl in enumerate(data['cityName']):
     # plt.yticks(np.log10(ytick), ytick)
 #,0.1,0.2,0.3,0.6,1
 
-result=pd.DataFrame()
-result['cityName-en']=cityName_list
-result['exp_aic']=exp_aic
-result['powerlaw_aic']=pl_aic
-result=pd.merge(result,data[['cityName-en','provinceName-en',f'{today}']])
-
-# result.to_csv('withoutinf-AIC-compare-exp-powerlaw.csv',index=0)
-result.to_csv('AIC-compare-exp-powerlaw.csv',index=0)
+# result=pd.DataFrame()
+# result['cityName-en']=cityName_list
+# result['exp_aic']=exp_aic
+# result['powerlaw_aic']=pl_aic
+# result=pd.merge(result,data[['cityName-en','provinceName-en',f'{today}']])
+#
+# # result.to_csv('withoutinf-AIC-compare-exp-powerlaw.csv',index=0)
+# result.to_csv('AIC-compare-exp-powerlaw.csv',index=0)
 
 # xtick=[1,2,3,4,5,6,7,8,9,10,13,16,20,23]
 # # plt.text(5,np.log10(0.003),f'Data updated on {today}', fontsize=10)

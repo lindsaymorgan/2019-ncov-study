@@ -43,27 +43,33 @@ X = sm.add_constant(list(compress(x, valid)))
 mod = sm.OLS(list(compress(y, valid)), X)
 # print(f'aic={mod.aic}')
 res = mod.fit()
-print ('popu-migration-dist-popu',res.params )
+residual=res.resid
+mod=sm.WLS(list(compress(y, valid)), X,weights=[1/i**2 for i in residual])
+res=mod.fit()
+print ('popu-migration-dist',res.params )
+popt=res.params
 print (res.conf_int(0.05)[1][1] )
 
-popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(x, valid)),
-                           list(compress(y, valid)))
 
-y2 = [popt[0] * ii + popt[1] for ii in [i*0.1 for i in range(-15,11)]]
-fit=plt.loglog([pow(10,i*0.1) for i in range(-15,11)], np.power(10,y2), 'r--',label=r'${\psi}=$'+f'{popt[0]:.2f}')
-plt.legend(fontsize=15)
+# popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(x, valid)),
+#                            list(compress(y, valid)))
+
+y2 = [popt[1] * ii + popt[0] for ii in [i*0.1 for i in range(-15,11)]]
+fit=plt.loglog([pow(10,i*0.1) for i in range(-15,11)], np.power(10,y2), 'r--')
+# plt.legend(fontsize=15)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.xlabel('r/m',fontsize=20)
 plt.ylabel('Population Migration',fontsize=20)
-plt.text(pow(10,-1.4),pow(10,2.5),r'${\psi}=$'+f'{popt[0]:.2f}'+r'${\pm}$'+f'{res.conf_int(0.05)[1][1]-popt[0]:.2f}', fontsize=20)
-plt.savefig('popu-migration-dist-popu.jpg', bbox_inches='tight')
+plt.text(pow(10,-1.4),pow(10,2.5),r'${\psi}=$'+f'{popt[1]:.2f}'+r'${\pm}$'+f'{res.conf_int(0.05)[1][1]-popt[1]:.2f}', fontsize=20)
+# plt.savefig('popu-migration-dist-popu.jpg', bbox_inches='tight')
 plt.show()
 #
 #
-plt.loglog(data['湖北省'],data[f'{date}'],'o',color='yellowgreen',label='')
+
 
 data=data[data['provinceName']!='西藏自治区']
+plt.loglog(data['湖北省'],data[f'{date}'],'o',color='yellowgreen',label='')
 x=np.log10(list(data['湖北省']))
 y=np.log10(data[f'{date}'])
 valid = ~(np.isnan(x) | np.isinf(x) | np.isnan(y) | np.isinf(y) )
@@ -71,19 +77,24 @@ valid = ~(np.isnan(x) | np.isinf(x) | np.isnan(y) | np.isinf(y) )
 X = sm.add_constant(list(compress(x, valid)))
 mod = sm.OLS(list(compress(y, valid)), X)
 res = mod.fit()
-print ('I-popu-migration',res.params )
-print (res.conf_int(0.05) )
-popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(x, valid)),
-                           list(compress(y, valid)))
+residual=res.resid
+mod=sm.WLS(list(compress(y, valid)), X,weights=[1/i**2 for i in residual])
+res=mod.fit()
+print ('popu-migration-dist',res.params )
+popt=res.params
+print (res.conf_int(0.05)[1][1] )
 
-y2 =  [popt[0] * ii + popt[1] for ii in [i*0.1 for i in range(22,42)]]
-plt.plot(np.power(10,[i*0.1 for i in range(22,42)]), np.power(10,y2), 'r--',label=r'${\theta}=$'+f'{popt[0]:.2f}')
-plt.legend(fontsize=15)
+# popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(x, valid)),
+#                            list(compress(y, valid)))
+
+y2 =  [popt[1] * ii + popt[0] for ii in [i*0.1 for i in range(22,42)]]
+plt.plot(np.power(10,[i*0.1 for i in range(22,42)]), np.power(10,y2), 'r--')
+# plt.legend(fontsize=15)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.xlabel('Population Migration',fontsize=20)
 plt.ylabel('I',fontsize=20)
-plt.text(pow(10,3),pow(10,1),r'${\theta}=$'+f'{popt[0]:.2f}'+r'${\pm}$'+f'{res.conf_int(0.05)[1][1]-popt[0]:.2f}', fontsize=20)
+plt.text(pow(10,3),pow(10,1.5),r'${\theta}=$'+f'{popt[1]:.2f}'+r'${\pm}$'+f'{res.conf_int(0.05)[1][1]-popt[1]:.2f}', fontsize=20)
 
-plt.savefig(f'I-popu-migration-{date}.jpg', bbox_inches='tight')
+# plt.savefig(f'I-popu-migration-{date}.jpg', bbox_inches='tight')
 plt.show()

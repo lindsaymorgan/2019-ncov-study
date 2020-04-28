@@ -17,18 +17,19 @@ data.sort_values(by=f'{today}',inplace=True)
 
 city_list=list()
 infection=list()
-data_D.drop(columns=[f'{datetime.date(2019,12,1)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,1,23)-datetime.datetime(2019,12,1)).days)],inplace=True)
-
-for r,pl in enumerate(data['cityName']):
+# data_D.drop(columns=[f'{datetime.date(2019,12,1)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,1,23)-datetime.datetime(2019,12,1)).days)],inplace=True)
+latent=4
+#data['cityName']
+for r,pl in enumerate(['深圳','广州']):
     city = data[data['cityName'] == pl]
-    record = city.values.tolist()[0][:-7]
+    record = city.values.tolist()[0][:-9]
 
     city_D = data_D[data_D['cityName'] == pl]
-    record_D = city_D.values.tolist()[0][:-2]
+    record_D = city_D.values.tolist()[0][:-4]
 
-    record1 = [a - b for a, b in zip(record[1:], record[:-1])]
-    record2 = [a - b for a, b in zip(record, record_D)]
-    v = [np.float64(m) / n for (m, n) in zip(record1, record2)]
+    record1 = [a - b for a, b in zip(record[latent:], record[:-latent])]
+    record2 = [a - b for a, b in zip(record[:-latent], record_D[:-latent])]
+    v = np.log10([np.float64(m) / n for (m, n) in zip(record1, record2)])
 
     # r_list=[x for x in r_list if str(x) != 'nan']
     valid = ~(np.isnan(v) | np.isinf(v))
@@ -42,7 +43,7 @@ city_infection['cityName']=city_list
 city_infection['infection_rate']=infection
 
 # city_infection=pd.merge(city_infection,data[['cityName','provinceName']],on='cityName',how='left')
-city_infection.to_csv(f'city_infection_I_D_{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+# city_infection.to_csv(f'latency{latent+1}_city_infection_I_D_{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 
 # base=int(np.floor(min(infection)/0.2))
 # ceil=int(np.ceil(max(infection)/0.2))

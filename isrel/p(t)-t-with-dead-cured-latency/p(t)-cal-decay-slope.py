@@ -23,7 +23,7 @@ data_D.fillna(0, inplace=True)
 # data=pd.read_csv(f'../../dxy-data/nice-dxy-data/city-pivot-day-summary-2020-02-18.csv')
 # day=np.log10(list(range(1,(datetime.datetime.today().date()-datetime.date(2020,1,24)).days)))
 day=list(range(0,(today-datetime.date(2020,1,23)).days))
-cut=8
+cut=6
 plt.figure(figsize=(15,8))
 #'北京','上海','广州','深圳'
 #'合肥','重庆','长沙','南昌','哈尔滨'
@@ -39,7 +39,7 @@ def pinyin(word):
 k_list=list()
 b_list=list()
 city_list=list()
-latent=3
+latent=4
 # data_D.drop(columns=[f'{datetime.date(2019,12,1)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,1,23)-datetime.datetime(2019,12,1)).days)],inplace=True)
 for r,pl in enumerate(data['cityName']): #data['cityName']
     city = data[data['cityName'] == pl]
@@ -50,12 +50,14 @@ for r,pl in enumerate(data['cityName']): #data['cityName']
 
     # final=record[-1]
     record1 = [a - b for a, b in zip(record[latent:], record[:-latent])]
-    record2 = [a - b for a, b in zip(record[latent:], record_D[latent:])]
+    record2 = [a - b for a, b in zip(record[:-latent], record_D[:-latent])]
     v = np.log10([np.float64(m) / n for (m, n) in zip(record1, record2)])
 
     try:
-        valid = ~(np.isnan(v[cut-latent+1:]) | np.isnan(day[cut:]) | np.isinf(v[cut-latent+1:]) | np.isinf(day[cut:]))
-        popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(day[cut:],valid)), list(compress(v[cut-latent+1:],valid)))
+        valid = ~(np.isnan(v[cut:]) | np.isnan(day[cut+latent-1:]) | np.isinf(v[cut:]) | np.isinf(
+            day[cut+latent-1:]))
+        popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(day[cut+latent-1:], valid)),
+                               list(compress(v[cut :], valid)))
         k_list.append(popt[0])
         b_list.append(popt[1])
         city_list.append(pl)
@@ -68,7 +70,7 @@ result['tau']=[-1/i for i in k_list]
 result['b']=b_list
 result['cityName']=city_list
 result=pd.merge(result,data[['cityName','provinceName',f'{today}']],on='cityName',how='left')
-result.to_csv(f'latency{latent}-p(t)-slope-I-D-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
+result.to_csv(f'latency{latent+1}-p(t)-slope-I-D-{today}.csv',index=0,encoding='utf-8-sig',sep=',')
 # print(min(k_list),max(k_list))
 #
 # base=int(np.floor(min(k_list)/0.02))

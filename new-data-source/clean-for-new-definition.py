@@ -14,7 +14,7 @@ def pinyin(word):
     return s
 
 # today = datetime.date.today()
-today=datetime.date(2020,3,2)
+today=datetime.date(2020,3,30)
 yesterday=today-datetime.timedelta(days=1)
 former=yesterday-datetime.timedelta(days=1)
 
@@ -37,13 +37,19 @@ for index, row in raw_data3.iterrows():
     if row['city'][0] in ['待', '未', '外','第','所']:
         raw_data3.at[index, 'city'] = np.nan
 
-raw_data3['city_D']=[c-a-b for a,b,c in zip(raw_data3['dead'],raw_data3['cured'],raw_data3['confirmed'])]
-raw_data5=pd.pivot_table(raw_data3, values='city_D', index='city',
+# raw_data3['city_D']=[c-a-b for a,b,c in zip(raw_data3['dead'],raw_data3['cured'],raw_data3['confirmed'])]
+kind='suspected'
+raw_data5=pd.pivot_table(raw_data3, values=kind, index='city',
                     columns='date')
+# raw_data5=pd.pivot_table(raw_data3, values='city_D', index='city',
+#                     columns='date')
 raw_data5['cityName']=raw_data5.index
 
 raw_data5['cityName-en'] = raw_data5.apply(lambda row: pinyin(f'{row["cityName"]}').capitalize(), axis = 1)
 
 raw_data5.drop_duplicates(keep = 'first', inplace = True)
 # record1=record1.ffill(axis=1)
-raw_data5.to_csv(f'./agged-record-data/city-I-D-pivot-day-summary-{yesterday}.csv',index=0,encoding='utf-8-sig',sep=',')
+raw_data5.drop(columns=[f'{datetime.date(2019,12,1)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,1,23)-datetime.datetime(2019,12,1)).days)],inplace=True)
+# raw_data5.drop(columns=[f'{datetime.date(2020,2,7)+datetime.timedelta(days=i)}' for i in range((datetime.datetime(2020,3,2)-datetime.datetime(2020,2,7)).days)],inplace=True)
+
+raw_data5.to_csv(f'./agged-record-data/city-{kind}-pivot-day-summary-{yesterday}.csv',index=0,encoding='utf-8-sig',sep=',')

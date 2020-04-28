@@ -51,35 +51,10 @@ data=pd.merge(data,popu,on='provinceName',how='left')
 
 #I-r
 
-data1=data
-data1=data[~data['provinceName'].isin(['黑龙江省','安徽省','江西省','湖南省','西藏自治区','湖北省'])]
-plt.loglog(data1['distance-Wuhan'],data1[f'{date}'],'o',label='')
-x=np.log10(list(data1['distance-Wuhan']))
-y=np.log10(data1[f'{date}'])
-valid = ~(np.isnan(x) | np.isinf(x) | np.isnan(y) | np.isinf(y) )
-popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(x, valid)),
-                           list(compress(y, valid)))
-
-X = sm.add_constant(list(compress(x, valid)))
-mod = sm.OLS(list(compress(y, valid)), X)
-res = mod.fit()
-print (res.params )
-print (res.conf_int(0.05) )
-
-y2 = [popt[0] * i + popt[1] for i in list(compress(x, valid))]
-plt.plot(np.power(10,list(compress(x, valid))), np.power(10,y2), '--',label=f'slope {popt[0]:.2f}')
-plt.legend(fontsize=12)
-
-plt.xlabel('r',fontsize=15)
-plt.ylabel('I',fontsize=15)
-# plt.savefig(f'I-r-{date}.jpg', bbox_inches='tight')
-plt.show()
-
-#I-m
-
-# data1=data[~data['provinceName'].isin(['辽宁省','海南省','西藏自治区','湖北省'])]
-# plt.loglog(data1[f'{year}-popu'],data1[f'{date}'],'o',label='')
-# x=np.log10(list(data1[f'{year}-popu']))
+# data1=data
+# data1=data[~data['provinceName'].isin(['黑龙江省','安徽省','江西省','湖南省','西藏自治区','湖北省'])]
+# plt.loglog(data1['distance-Wuhan'],data1[f'{date}'],'o',label='')
+# x=np.log10(list(data1['distance-Wuhan']))
 # y=np.log10(data1[f'{date}'])
 # valid = ~(np.isnan(x) | np.isinf(x) | np.isnan(y) | np.isinf(y) )
 # popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(x, valid)),
@@ -88,14 +63,50 @@ plt.show()
 # X = sm.add_constant(list(compress(x, valid)))
 # mod = sm.OLS(list(compress(y, valid)), X)
 # res = mod.fit()
-# print (res.params )
-# print (res.conf_int(0.05) )
+# residual=res.resid
+# X = sm.add_constant(list(compress(x, valid)))
+# mod=sm.WLS(list(compress(y, valid)), X,weights=[1/i**2 for i in residual])
+# res=mod.fit()
+# print ('popu-migration-dist',res.params )
+# popt=res.params
+# print (res.conf_int(0.05)[1][1] )
 #
-# y2 = [popt[0] * i + popt[1] for i in list(compress(x, valid))]
-# plt.plot(np.power(10,list(compress(x, valid))), np.power(10,y2), '--',label=f'slope {popt[0]:.2f}')
+#
+# y2 = [popt[1] * i + popt[0] for i in list(compress(x, valid))]
+# plt.plot(np.power(10,list(compress(x, valid))), np.power(10,y2), '--',label=f'slope {popt[1]:.2f}')
 # plt.legend(fontsize=12)
 #
-# plt.xlabel('m',fontsize=15)
+# plt.xlabel('r',fontsize=15)
 # plt.ylabel('I',fontsize=15)
-# # plt.savefig(f'I-m-{date}.jpg', bbox_inches='tight')
+# # plt.savefig(f'I-r-{date}.jpg', bbox_inches='tight')
 # plt.show()
+
+#I-m
+
+data1=data[~data['provinceName'].isin(['辽宁省','海南省','西藏自治区','湖北省'])]
+plt.loglog(data1[f'{year}-popu'],data1[f'{date}'],'o',label='')
+x=np.log10(list(data1[f'{year}-popu']))
+y=np.log10(data1[f'{date}'])
+valid = ~(np.isnan(x) | np.isinf(x) | np.isnan(y) | np.isinf(y) )
+popt, pcov = curve_fit(lambda t, k, b: k * t + b, list(compress(x, valid)),
+                           list(compress(y, valid)))
+
+X = sm.add_constant(list(compress(x, valid)))
+mod = sm.OLS(list(compress(y, valid)), X)
+res = mod.fit()
+residual=res.resid
+X = sm.add_constant(list(compress(x, valid)))
+mod=sm.WLS(list(compress(y, valid)), X,weights=[1/i**2 for i in residual])
+res=mod.fit()
+print ('popu-migration-dist',res.params )
+popt=res.params
+print (res.conf_int(0.05)[1][1] )
+
+y2 = [popt[1] * i + popt[0] for i in list(compress(x, valid))]
+plt.plot(np.power(10,list(compress(x, valid))), np.power(10,y2), '--',label=f'slope {popt[1]:.2f}')
+plt.legend(fontsize=12)
+
+plt.xlabel('m',fontsize=15)
+plt.ylabel('I',fontsize=15)
+# plt.savefig(f'I-m-{date}.jpg', bbox_inches='tight')
+plt.show()

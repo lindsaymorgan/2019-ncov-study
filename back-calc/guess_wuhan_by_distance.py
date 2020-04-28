@@ -20,11 +20,11 @@ for date in [f'2020-02-{i:0>2}' for i in range(1,20)]:
 
     place=pd.read_csv('china_coordinates.csv')
 
-    data=raw_data[[f'{date}','provinceName']]
+    data=raw_data[[f'{date}','provinceName','distance-Wuhan']]
     # data.drop(['currentConfirmedCount'],inplace=True)
     data=pd.merge(data,place,on='provinceName',how='left')
     data['geo_distance']=0
-    data=pd.merge(data,qianxi.loc[:,['move_out','provinceName']],on='provinceName',how='left')
+    # data=pd.merge(data,qianxi.loc[:,['distance-Wuhan','provinceName']],on='provinceName',how='left')
     data1=data[(data['provinceName']!='香港') & (data['provinceName']!='澳门') & (data['provinceName']!='台湾')
     & (data['provinceName']!='安徽省')& (data['provinceName']!='河南省')& (data['provinceName']!='湖南省')& (data['provinceName']!='湖北省')]
     # data1=data[(data['provinceName']=='广东') | (data['provinceName']=='上海') | (data['provinceName']=='浙江')
@@ -52,32 +52,44 @@ for date in [f'2020-02-{i:0>2}' for i in range(1,20)]:
     # popt, pcov = curve_fit(lambda t, k, b: k * t + b, np.log10(data1['move_out']), np.log10(data1['province_confirmedCount']))
     # y2 = [popt[0] * i + popt[1] for i in np.log10(data1['move_out'])]
     # plt.plot(np.log10(data1['move_out']), y2, '--')
-    X = sm.add_constant(np.log10(data1['move_out']))
-    X_1 = sm.add_constant(np.log10(data['move_out']))
-    weight_add=0.1
-    lm_s = sm.WLS(np.log10(data1[f'{date}']), X,weights=[a+b for a,b in zip([i*weight_add for i in [1,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,1]]+[0]*(len(data1)-17),[1]*len(data1))]).fit()
-    plt.plot(np.log10(data1['move_out']), np.log10(data1[f'{date}']),'o', label=f'各省上报')
-    plt.plot(np.log10(data['move_out']), lm_s.predict(X_1), '--', label='拟合推测线')
-    print(date,pow(10,lm_s.params[1]*2+lm_s.params[0]))
-    # data['guess_by_wls']=data.apply(lambda row: pow(10,lm_s.params[0]*math.log10(row[10])+lm_s.params[1]), axis = 1)
-    data['guess_qianxi']=[pow(10,i) for i in lm_s.predict(X_1)]
-    data.drop_duplicates(keep='first',inplace=True,subset='provinceName')
-    plt.legend()
-    plt.xlabel('湖北迁入率 %')
-    plt.ylabel('确诊人数')
-    ytick=[1,3,6,10,30,60,100,300,600,1000,3000,6000,10000]
-    plt.yticks( np.log10(ytick),ytick)
-    xtick=[0.01,0.03,0.06,0.1,0.3,0.6,1,3,6,10,13,100]
-    plt.xticks( np.log10(xtick),xtick)
-    # plt.savefig(f'guess-by-qianxi.jpg', bbox_inches='tight')
-    plt.show()
+    X = sm.add_constant(np.log10(data1['distance-Wuhan']))
+    X_1 = sm.add_constant(np.log10(data['distance-Wuhan']))
+    weight_add=20
+    weights = [a + b for a, b in zip(
+        [i * weight_add for i in [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1]] + [0] * (len(data1) - 17),
+        [1] * len(data1))]
+    popt=np.polyfit(data1['distance-Wuhan'],data1[f'{date}'],3,w=np.sqrt(weights))
+    ry = np.polyval(popt, data1['distance-Wuhan'])
+    plt.plot(data1['distance-Wuhan'], data1[f'{date}'],'o', label=f'各省上报')
+    plt.plot(data1['distance-Wuhan'], ry, '--', label='拟合推测线')
+    print(date,np.polyval(popt, 0))
+
+    # lm_s = sm.WLS(np.log10(data1[f'{date}']), X,weights=[a+b for a,b in zip([i*weight_add for i in [1,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,1]]+[0]*(len(data1)-17),[1]*len(data1))]).fit()
+    # plt.plot(np.log10(data1['distance-Wuhan']), np.log10(data1[f'{date}']),'o', label=f'各省上报')
+    # plt.plot(np.log10(data['distance-Wuhan']), lm_s.predict(X_1), '--', label='拟合推测线')
+
+    # # with open('guess_by_distance_wuhan.txt', 'w+') as f:
+    # print(date, pow(10, lm_s.params[0]))
+    #
+    # # data['guess_by_wls']=data.apply(lambda row: pow(10,lm_s.params[0]*math.log10(row[10])+lm_s.params[1]), axis = 1)
+    # data['guess']=[pow(10,i) for i in lm_s.predict(X_1)]
+    # data.drop_duplicates(keep='first',inplace=True,subset='provinceName')
+    # plt.legend()
+    # plt.xlabel('湖北迁入率 %')
+    # plt.ylabel('确诊人数')
+    # ytick=[1,3,6,10,30,60,100,300,600,1000,3000,6000,10000]
+    # plt.yticks( np.log10(ytick),ytick)
+    # # xtick=[0.01,0.03,0.06,0.1,0.3,0.6,1,3,6,10,13,100]
+    # # plt.xticks( np.log10(xtick),xtick)
+    # # plt.savefig(f'guess-by-qianxi.jpg', bbox_inches='tight')
+    # plt.show()
     # print(popt[0],popt[1])
     # data['guess_qianxi']=data.apply(lambda row: pow(10,popt[0]*math.log10(row[10])+popt[1]), axis = 1)
     #
     # data.drop_duplicates(subset='provinceName',keep='first',inplace=True)
-    data.sort_values(by='guess_qianxi',inplace=True)
-    data.reset_index(inplace=True)
-    data2=data
+    # data.sort_values(by='guess',inplace=True)
+    # data.reset_index(inplace=True)
+    # data2=data
     # plt.figure(figsize=(8,12))
     # plt.title(f'{date}')
     # valid = ~(np.isnan( data['guess_qianxi']))
@@ -93,4 +105,4 @@ for date in [f'2020-02-{i:0>2}' for i in range(1,20)]:
     # plt.savefig(f'bar-guess-by-qianxi-compare-{weight_add}-20200201.jpg', bbox_inches='tight')
 
     plt.show()
-    data.to_csv(f'guess_by_qianxi_{date}.csv',index=0,encoding='utf-8-sig',sep=',')
+    # data.to_csv(f'guess_by_qianxi_{date}.csv',index=0,encoding='utf-8-sig',sep=',')
